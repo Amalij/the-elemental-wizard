@@ -22,14 +22,11 @@ let enemies = [];
 let particles = [];
 let spells = [];
 
-let isFrozen = false;
-let freezeTimer = 0;
-let lastFistState = false; // Tracks state transition for Freeze
-
 // NEW: Double Fist Burst Tracking Variables to End Game
 let fistBurstCount = 0;
 let lastBurstTime = 0;
-const BURST_TIME_WINDOW = 1200; // Time window allowed between two bursts in milliseconds (1.2 seconds)
+const BURST_TIME_WINDOW = 1200; // Time window allowed between two bursts (1.2 seconds)
+let lastFistState = false; 
 
 // Audio Engine Context initialization (Web Audio API)
 const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
@@ -57,13 +54,6 @@ function playSound(type) {
         gainNode.gain.setValueAtTime(0.3, audioCtx.currentTime);
         gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.3);
         osc.start(); osc.stop(audioCtx.currentTime + 0.3);
-    } else if (type === 'freeze') {
-        osc.type = 'sine';
-        osc.frequency.setValueAtTime(150, audioCtx.currentTime);
-        osc.frequency.exponentialRampToValueAtTime(600, audioCtx.currentTime + 0.5);
-        gainNode.gain.setValueAtTime(0.4, audioCtx.currentTime);
-        gainNode.gain.exponentialRampToValueAtTime(0.01, audioCtx.currentTime + 0.5);
-        osc.start(); osc.stop(audioCtx.currentTime + 0.5);
     } else if (type === 'hit') {
         osc.type = 'triangle';
         osc.frequency.setValueAtTime(120, audioCtx.currentTime);
@@ -87,14 +77,13 @@ class Enemy {
         this.x = Math.random() * (canvasElement.width - 60) + 30;
         this.y = -50;
         this.radius = Math.random() * 15 + 20;
-        this.speed = Math.random() * 2 + 1.5 + (score * 0.05);
+        // INSTANT SPEED: පටන් ගත්තු ගමන්ම බෝල වේගයෙන් පල්ලෙහාට වැටේ
+        this.speed = Math.random() * 3 + 4.5 + (score * 0.1); 
         this.color = `hsl(${Math.random() * 40 + 280}, 80%, 50%)`;
     }
 
     update() {
-        if (!isFrozen) {
-            this.y += this.speed;
-        }
+        this.y += this.speed; // Freeze ලොජික් එක සම්පූර්ණයෙන්ම අයින් කර ඇත
     }
 
     draw() {
@@ -114,7 +103,7 @@ class SpellProjectile {
         this.x = x;
         this.y = y;
         this.radius = 12;
-        this.speed = 18;
+        this.speed = 22; // මුදාහරින මැජික් බෝල වල වේගයද වැඩි කර ඇත
         const angle = Math.atan2(targetY - y, targetX - x);
         this.vx = Math.cos(angle) * this.speed;
         this.vy = Math.sin(angle) * this.speed;
@@ -184,7 +173,6 @@ function processHandGestures(results) {
 
     const landmarks = results.multiHandLandmarks[0];
 
-    // Inverting X axis coordinates seamlessly handles camera mirror mechanics natively
     const indexTip = landmarks[8];
     const crosshairX = (1 - indexTip.x) * window.innerWidth;
     const crosshairY = indexTip.y * window.innerHeight;
@@ -202,7 +190,7 @@ function processHandGestures(results) {
     const pinkyTip = landmarks[20];
     const pinkyPip = landmarks[18];
 
-    // 1. Fist State Detection
+    // 1. Fist Detection (For emergency stop)
     const isFist = (indexTip.y > indexPip.y) && 
                    (middleTip.y > middlePip.y) && 
                    (ringTip.y > ringPip.y) && 
@@ -214,7 +202,7 @@ function processHandGestures(results) {
                        (ringTip.y < ringPip.y) && 
                        (pinkyTip.y < pinkyPip.y);
 
-    // 3. Gun/Fireball Formulation Gesture
+    // 3. Gun/Fireball Gesture
     const isGunShape = (indexTip.y < indexPip.y) && 
                        (middleTip.y > middlePip.y) && 
                        (ringTip.y > ringPip.y) && 
@@ -255,43 +243,36 @@ function processHandGestures(results) {
         spellVal.style.color = '#7000ff';
         lastFistState = true; 
     } else {
-        // Handle transitions from Fist to Release (Burst)
         if (lastFistState) {
-            handleFistBurst();
+            handleFistBurst(); // Emergency Game Over එක විතරක් ක්‍රියාත්මක වේ
             lastFistState = false;
         }
-        spellVal.textContent = isFrozen ? 'FREEZE ACTIVE' : 'READY';
-        spellVal.style.color = isFrozen ? '#00f0ff' : '#fff';
+        spellVal.textContent = 'READY';
+        spellVal.style.color = '#fff';
     }
 
     if (Math.random() < 0.4) {
-        particles.push(new Particle(crosshairX, crosshairY, isFrozen ? '#00f0ff' : '#7000ff'));
+        particles.push(new Particle(crosshairX, crosshairY, '#7000ff'));
     }
 }
 
-// NEW: Advanced Double Fist Burst Evaluator to Trigger Early Game Over
+// Double Fist Burst Evaluator to Trigger Early Game Over ONLY (No Freeze)
 function handleFistBurst() {
     const currentTime = Date.now();
     
-    // Check if the previous burst occurred within the allowed rapid time window
     if (currentTime - lastBurstTime < BURST_TIME_WINDOW) {
         fistBurstCount++;
     } else {
-        fistBurstCount = 1; // Reset counter if time window expired
+        fistBurstCount = 1; 
     }
     
     lastBurstTime = currentTime;
 
-    // Trigger Game Termination if exactly 2 consecutive bursts are registered
     if (fistBurstCount === 2) {
         playSound('damage');
         triggerGameOver();
-        fistBurstCount = 0; // Reset counter
-        return;
+        fistBurstCount = 0; 
     }
-
-    // Default action for a single burst: Trigger Freeze Spell
-    triggerFreezeSpell();
 }
 
 function drawShield(x, y) {
@@ -308,13 +289,6 @@ function drawShield(x, y) {
     canvasCtx.restore();
 }
 
-function triggerFreezeSpell() {
-    if (isFrozen) return; 
-    isFrozen = true;
-    freezeTimer = 180; 
-    playSound('freeze');
-}
-
 // --- PRINCIPAL GAME LOOP RUN ENGINE ---
 function gameLoop() {
     if (!gameActive) return;
@@ -325,14 +299,8 @@ function gameLoop() {
     scoreVal.textContent = String(score).padStart(3, '0');
     hpBarFill.style.width = `${health}%`;
 
-    if (isFrozen) {
-        freezeTimer--;
-        canvasCtx.fillStyle = 'rgba(0, 240, 255, 0.03)';
-        canvasCtx.fillRect(0, 0, canvasElement.width, canvasElement.height);
-        if (freezeTimer <= 0) isFrozen = false;
-    }
-
-    if (Math.random() < 0.025 && enemies.length < 12) {
+    // HIGH ACTIVE SPAWN RATE: ගේම් එක පටන් ගත්තු සැනින් බෝල විශාල ප්‍රමාණයක් වේගයෙන් කඩා වැටේ
+    if (Math.random() < 0.08 && enemies.length < 20) { 
         enemies.push(new Enemy());
     }
 
@@ -384,25 +352,28 @@ function triggerGameOver() {
     finalScoreVal.textContent = score;
     gameoverOverlay.classList.remove('hidden');
 
-    // NEW: Stop the camera stream entirely when game ends
     if (videoElement.srcObject) {
         const stream = videoElement.srcObject;
         const tracks = stream.getTracks();
-        tracks.forEach(track => track.stop()); // Stops each camera track
-        videoElement.srcObject = null;         // Clears the source
+        tracks.forEach(track => track.stop()); 
+        videoElement.srcObject = null;         
         console.log("Webcam safely deactivated.");
     }
 }
+
 function resetGame() {
     score = 0;
     health = 100;
     enemies = [];
     spells = [];
     particles = [];
-    isFrozen = false;
     fistBurstCount = 0; 
     
-    // NEW: Restart the camera safely if it was stopped
+    // START TRIGGER: බටන් එක ඔබපු ගමන්ම සතුරන් බිහි කිරීම ආරම්භ කිරීමට මුලින්ම සතුරන් 3ක් ඇතුළත් කරයි
+    enemies.push(new Enemy());
+    enemies.push(new Enemy());
+    enemies.push(new Enemy());
+
     if (!videoElement.srcObject) {
         camera.start()
             .then(() => {
@@ -414,7 +385,6 @@ function resetGame() {
             })
             .catch(err => alert("Webcam access required to restart. Error: " + err));
     } else {
-        // Fallback if camera was already running
         gameActive = true;
         gameoverOverlay.classList.add('hidden');
         startOverlay.classList.add('hidden');
