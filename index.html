@@ -1,0 +1,71 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>The Elemental Wizard - Hand Gesture Game</title>
+    <link rel="stylesheet" href="style.css">
+    <link href="https://fonts.googleapis.com/css2?family=Orbitron:wght@400;700&family=Rajdhani:wght@500;700&display=swap" rel="stylesheet">
+    
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
+    <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+</head>
+<body>
+
+    <div id="game-container">
+        
+        <video id="webcam" autoplay playsinline></video>
+        
+        <canvas id="gameCanvas"></canvas>
+
+        <div id="hud">
+            <div class="hud-box" id="score-board">
+                <span class="label">SCORE</span>
+                <span id="score-val" class="value">000</span>
+            </div>
+            
+            <div class="hud-box" id="spell-board">
+                <span class="label">ACTIVE SPELL</span>
+                <span id="spell-val" class="value modern-glow">NONE</span>
+            </div>
+
+            <div class="hud-box" id="health-board">
+                <span class="label">MANA / HP</span>
+                <div class="hp-bar-container">
+                    <div id="hp-bar-fill"></div>
+                </div>
+            </div>
+        </div>
+
+        <div id="crosshair"></div>
+
+        <div id="start-overlay">
+            <h1 class="game-title">THE ELEMENTAL WIZARD</h1>
+            <p class="game-subtitle">Control Ancient Magic Using Your Hand Gestures</p>
+            
+            <div class="instructions">
+                <h3>🔮 SPELLBOOK & GESTURES</h3>
+                <ul>
+                    <li><strong>🔥 Fireball:</strong> Make a Gun shape (Thumb & Index extended). Pinch them together to shoot!</li>
+                    <li><strong>🛡️ Shield:</strong> Open your entire palm flat to block incoming enemies.</li>
+                    <li><strong>❄️ Freeze:</strong> Make a tight Fist, then burst it open quickly to freeze time for 3 seconds.</li>
+                </ul>
+            </div>
+            
+            <button id="start-btn">AWAKEN POWERS</button>
+        </div>
+
+        <div id="gameover-overlay" class="hidden">
+            <h1 class="gameover-title">WIZARD DEFEATED</h1>
+            <p>Your Mana has depleted completely.</p>
+            <div class="final-score-box">
+                <span>FINAL SCORE:</span>
+                <span id="final-score-val">0</span>
+            </div>
+            <button id="restart-btn">REVIVE WIZARD</button>
+        </div>
+    </div>
+
+    <script src="app.js"></script>
+</body>
+</html>
