@@ -9,20 +9,25 @@
     
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/camera_utils/camera_utils.js" crossorigin="anonymous"></script>
     <script src="https://cdn.jsdelivr.net/npm/@mediapipe/hands/hands.js" crossorigin="anonymous"></script>
+//camera_utils.js= handle webcam input and processing
+//hands.js= hand tracking and gesture recognition
+//cross-origin attribute allows these scripts to be loaded from a different domain without CORS issues, ensuring smooth integration of MediaPipe's hand tracking capabilities into the game.
 </head>
 <body>
 
     <div id="game-container">
         
         <video id="webcam" autoplay playsinline></video>
-        
+        //video element captures live feed from the user's webcam, enabling real-time hand gesture recognition for gameplay interaction.
         <canvas id="gameCanvas"></canvas>
+        //canvas element serves as the main rendering surface for the game's graphics, where all visual elements such as the wizard, spells, enemies, and HUD will be drawn and updated during gameplay.
 
         <div id="hud">
             <div class="hud-box" id="score-board">
                 <span class="label">SCORE</span>
                 <span id="score-val" class="value">000</span>
             </div>
+            //hud-box displays the player's current score, updating dynamically as the player defeats enemies and casts spells, providing immediate feedback on their performance.
             
             <div class="hud-box" id="spell-board">
                 <span class="label">ACTIVE SPELL</span>

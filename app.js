@@ -77,13 +77,13 @@ class Enemy {
         this.x = Math.random() * (canvasElement.width - 60) + 30;
         this.y = -50;
         this.radius = Math.random() * 15 + 20;
-        // INSTANT SPEED: පටන් ගත්තු ගමන්ම බෝල වේගයෙන් පල්ලෙහාට වැටේ
+        // INSTANT SPEED: enemies will spawn with a speed that is influenced by the current score, making the game progressively more challenging as the player scores higher.
         this.speed = Math.random() * 3 + 4.5 + (score * 0.1); 
         this.color = `hsl(${Math.random() * 40 + 280}, 80%, 50%)`;
     }
 
     update() {
-        this.y += this.speed; // Freeze ලොජික් එක සම්පූර්ණයෙන්ම අයින් කර ඇත
+        this.y += this.speed; // Freeze logic removed to maintain constant enemy movement, ensuring that the game remains challenging and dynamic even when the player is performing certain actions (like holding a fist), rather than halting all enemy activity which could reduce the game's intensity and engagement.
     }
 
     draw() {
@@ -103,7 +103,7 @@ class SpellProjectile {
         this.x = x;
         this.y = y;
         this.radius = 12;
-        this.speed = 22; // මුදාහරින මැජික් බෝල වල වේගයද වැඩි කර ඇත
+        this.speed = 22; //  INSTANT SPEED: spells will travel at a high speed immediately upon being cast, allowing for quick and responsive gameplay where players can see the immediate impact of their actions, rather than having a delayed or slow-moving projectile which could reduce the sense of power and immediacy in casting spells.
         const angle = Math.atan2(targetY - y, targetX - x);
         this.vx = Math.cos(angle) * this.speed;
         this.vy = Math.sin(angle) * this.speed;
@@ -244,7 +244,7 @@ function processHandGestures(results) {
         lastFistState = true; 
     } else {
         if (lastFistState) {
-            handleFistBurst(); // Emergency Game Over එක විතරක් ක්‍රියාත්මක වේ
+            handleFistBurst(); // Emergency Game Over  
             lastFistState = false;
         }
         spellVal.textContent = 'READY';
@@ -299,7 +299,7 @@ function gameLoop() {
     scoreVal.textContent = String(score).padStart(3, '0');
     hpBarFill.style.width = `${health}%`;
 
-    // HIGH ACTIVE SPAWN RATE: ගේම් එක පටන් ගත්තු සැනින් බෝල විශාල ප්‍රමාණයක් වේගයෙන් කඩා වැටේ
+    // HIGH ACTIVE SPAWN RATE: start spawning enemies immediately with a high probability to create an intense and engaging gameplay experience right from the start, rather than having a slow buildup which could reduce player engagement and excitement in the early stages of the game.
     if (Math.random() < 0.08 && enemies.length < 20) { 
         enemies.push(new Enemy());
     }
@@ -369,7 +369,7 @@ function resetGame() {
     particles = [];
     fistBurstCount = 0; 
     
-    // START TRIGGER: බටන් එක ඔබපු ගමන්ම සතුරන් බිහි කිරීම ආරම්භ කිරීමට මුලින්ම සතුරන් 3ක් ඇතුළත් කරයි
+    // START TRIGGER:  pressing the start button will immediately populate the game with a few enemies to create an engaging and action-packed experience right from the beginning, rather than starting with an empty screen which could reduce player excitement and immersion in the early moments of the game.
     enemies.push(new Enemy());
     enemies.push(new Enemy());
     enemies.push(new Enemy());
